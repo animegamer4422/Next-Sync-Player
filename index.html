@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Next-Sync with Plyr</title>
+    <title>Next-Sync with Plyr and HLS</title>
+    <!-- Video Together Script -->
+    <script src="https://fastly.jsdelivr.net/gh/VideoTogether/VideoTogether@latest/release/extension.website.user.js"></script>
     <!-- DaisyUI and TailwindCSS -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.12/plyr.css" />
+    <!-- hls.js -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <!-- External Stylesheet -->
     <link rel="stylesheet" href="styles.css">
     <style>
         /* Make Plyr responsive */
         video {
             width: 100%;
-            max-width: 90vw; /* Responsive max-width */
-            max-height: 60vh; /* Limits height for landscape or portrait videos */
-            object-fit: contain; /* Ensures video stays within view without cropping */
+            max-width: 90vw;
+            max-height: 60vh;
+            object-fit: contain;
         }
     </style>
 </head>
@@ -64,22 +68,24 @@
             </svg>
         </label>
 
-        <!-- Video URL input and File input -->
+        <!-- Video URL input and Play Link button -->
         <input 
             id="videoUrl" 
             type="url" 
             placeholder="Enter Video URL" 
             class="input input-bordered input-primary w-full max-w-xs"
         />
+        <button id="playLinkButton" class="btn btn-primary w-full max-w-xs mt-2">Play Link</button>
         
-        <label class="btn btn-secondary w-full max-w-xs">
+        <!-- File input for selecting a video -->
+        <label class="btn btn-secondary w-full max-w-xs mt-2">
             <input 
                 id="mediaFile" 
                 type="file" 
                 accept="video/*,audio/*" 
                 class="file-input hidden"
             />
-            Select Media File
+            Select Video File
         </label>
 
         <!-- Plyr Video Element -->
@@ -95,24 +101,51 @@
         });
 
         // Initialize Plyr
-        const player = new Plyr('#player');
+        const videoElement = document.getElementById('player');
+        const player = new Plyr(videoElement);
+
         const videoUrlInput = document.getElementById('videoUrl');
         const mediaFileInput = document.getElementById('mediaFile');
+        const playLinkButton = document.getElementById('playLinkButton');
 
-        // Load media from URL
-        videoUrlInput.addEventListener('change', () => {
-            const mediaUrl = videoUrlInput.value;
-            if (mediaUrl) {
+        // Function to load HLS or regular video source
+        function loadVideo(url) {
+            // Check if the video URL is an HLS stream (ends with .m3u8)
+            if (Hls.isSupported() && url.endsWith(".m3u8")) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(videoElement);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    player.play();
+                });
+            } else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
+                // Native HLS support (e.g., Safari)
+                videoElement.src = url;
+                videoElement.addEventListener("loadedmetadata", () => {
+                    player.play();
+                });
+            } else {
+                // For non-HLS URLs, fallback to Plyr's standard handling
                 player.source = {
                     type: 'video',
                     sources: [
                         {
-                            src: mediaUrl,
-                            type: 'video/mp4',  // defaulting to mp4 for URL input
+                            src: url,
+                            type: 'video/mp4', // Default to mp4 for non-HLS
                         },
                     ],
                 };
                 player.play();
+            }
+        }
+
+        // Play Link button event listener
+        playLinkButton.addEventListener('click', () => {
+            const mediaUrl = videoUrlInput.value;
+            if (mediaUrl) {
+                loadVideo(mediaUrl);
+            } else {
+                alert("Please enter a valid video URL.");
             }
         });
 
@@ -121,16 +154,7 @@
             const file = mediaFileInput.files[0];
             if (file) {
                 const mediaUrl = URL.createObjectURL(file);
-                player.source = {
-                    type: file.type.startsWith('audio/') ? 'audio' : 'video',
-                    sources: [
-                        {
-                            src: mediaUrl,
-                            type: file.type,
-                        },
-                    ],
-                };
-                player.play();
+                loadVideo(mediaUrl);
             }
         });
     </script>
