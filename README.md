@@ -2,6 +2,10 @@
 
 Next-Sync is a web-based video player that supports synchronized video playback, HLS streaming, and theme toggling. Users can enter a room to watch videos together in sync across different devices. The project is built using Plyr, HLS.js, and Video Together, with DaisyUI for styling.
 
+**Project Link**: [Next-Sync-Player](https://animegamer4422.github.io/Next-Sync-Player/)
+
+**Note**: This project is a **WIP (Work in Progress)**, and contributions are welcome!
+
 ## Features
 
 - **Watch Together**: Sync video playback with others in the same room.
@@ -44,7 +48,8 @@ To start a synchronized playback session:
 2. Click **Play Link** to start playback.
 
 #### Upload a Video File
-1. Use the **Select Video File** button to upload and play a local video file.
+1. Use the **Select Video File** button to upload and play a local video file.  
+   *Note: Each participant must have a copy of the same local video file to sync playback.*
 
 #### Toggle Theme
 Switch between light and dark themes by using the theme toggle switch above the video player.
@@ -80,9 +85,6 @@ These libraries are loaded via CDN:
 ## Future Enhancements
 
 - Add support for custom video controls.
-- Implement better Adaptive UI for all devices
+- Implement adaptive UI for a better experience on all devices.
 - Improve room management with user authentication.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+- Enhance local file sync capabilities to ensure smooth, multi-device playback.
